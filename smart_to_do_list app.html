@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>To-Do List with Reminders</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+
+    /* HEADER */
+    .header { text-align: center; margin-bottom: 24px; }
+    .header h1 { font-size: 1.8rem; font-weight: 700; color: #2d3748; }
+    .header p { color: #a0aec0; font-size: 0.85rem; margin-top: 4px; }
+
+    /* STATS */
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 24px;
+      padding: 14px;
+      background: #f7fafc;
+      border-radius: 12px;
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 1.4rem; font-weight: 700; color: #667eea; }
+    .stat-label { font-size: 0.7rem; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* INPUT SECTION */
+    .input-section {
+      background: #f7fafc;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .input-row input[type="text"] {
+      flex: 1;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.88rem;
+      color: #2d3748;
+      outline: none;
+      background: white;
+      transition: border-color 0.2s;
+    }
+    .input-row input[type="text"]:focus { border-color: #667eea; }
+    .input-row input::placeholder { color: #cbd5e0; }
+
+    .priority-select {
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 11px 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.8rem;
+      color: #4a5568;
+      outline: none;
+      background: white;
+      cursor: pointer;
+    }
+
+    /* REMINDER ROW */
+    .reminder-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .reminder-label {
+      font-size: 0.78rem;
+      color: #718096;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .reminder-type {
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.78rem;
+      color: #4a5568;
+      outline: none;
+      background: white;
+      cursor: pointer;
+    }
+
+    .interval-input {
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.78rem;
+      color: #2d3748;
+      outline: none;
+      background: white;
+      width: 80px;
+    }
+
+    .time-input {
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.78rem;
+      color: #2d3748;
+      outline: none;
+      background: white;
+    }
+
+    .add-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .add-btn:hover { background: #5a67d8; transform: scale(1.05); }
+
+    /* FILTER TABS */
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: #f0f2f5;
+      color: #718096;
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.2s;
+    }
+    .tab.active { background: #667eea; color: white; }
+
+    /* TASK LIST */
+    .task-list { display: flex; flex-direction: column; gap: 10px; min-height: 80px; }
+
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      transition: all 0.2s;
+      animation: slideIn 0.3s ease;
+    }
+    .task-item:hover { border-color: #667eea; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .task-item.done { background: #f0fff4; border-color: #c6f6d5; }
+    .task-item.overdue { background: #fff5f5; border-color: #fed7d7; }
+
+    .checkbox {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid #cbd5e0;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      transition: all 0.2s;
+      margin-top: 2px;
+    }
+    .checkbox:hover { border-color: #667eea; }
+    .task-item.done .checkbox { background: #48bb78; border-color: #48bb78; color: white; }
+
+    .task-info { flex: 1; }
+    .task-text {
+      font-size: 0.88rem;
+      color: #2d3748;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .task-item.done .task-text { text-decoration: line-through; color: #a0aec0; }
+
+    .task-meta {
+      font-size: 0.72rem;
+      color: #a0aec0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .reminder-info {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #667eea;
+      font-weight: 500;
+    }
+
+    .task-item.overdue .reminder-info { color: #e53e3e; }
+
+    .badge {
+      font-size: 0.62rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+    .badge.high { background: #fff5f5; color: #e53e3e; }
+    .badge.medium { background: #fffaf0; color: #dd6b20; }
+    .badge.low { background: #f0fff4; color: #276749; }
+
+    .task-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .edit-btn, .delete-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .edit-btn:hover { background: #ebf8ff; }
+    .delete-btn:hover { background: #fff5f5; }
+
+    /* Empty */
+    .empty { text-align: center; padding: 32px; color: #a0aec0; font-size: 0.85rem; }
+    .empty span { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+
+    /* Clear btn */
+    .clear-btn {
+      width: 100%;
+      margin-top: 14px;
+      background: transparent;
+      border: 2px solid #fed7d7;
+      border-radius: 12px;
+      padding: 10px;
+      color: #fc8181;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .clear-btn:hover { background: #fff5f5; }
+
+    /* ALERT POPUP */
+    .alert-popup {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      border: 2px solid #667eea;
+      border-radius: 16px;
+      padding: 20px 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      z-index: 999;
+      max-width: 300px;
+      animation: popIn 0.3s ease;
+    }
+    .alert-popup.show { display: block; }
+    .alert-popup h3 { font-size: 1rem; color: #2d3748; margin-bottom: 6px; }
+    .alert-popup p { font-size: 0.85rem; color: #718096; margin-bottom: 14px; }
+    .alert-close {
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="header">
+    <h1>📝 Smart To-Do List</h1>
+    <p>Tasks with reminders & alerts!</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" id="totalCount">0</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="doneCount" style="color:#48bb78;">0</div>
+      <div class="stat-label">Done</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="pendingCount" style="color:#fc8181;">0</div>
+      <div class="stat-label">Pending</div>
+    </div>
+  </div>
+
+  <!-- INPUT -->
+  <div class="input-section">
+    <div class="input-row">
+      <input type="text" id="taskInput" placeholder="Add a new task..."/>
+      <select class="priority-select" id="prioritySelect">
+        <option value="high">🔴 High</option>
+        <option value="medium" selected>🟡 Medium</option>
+        <option value="low">🟢 Low</option>
+      </select>
+      <button class="add-btn" onclick="addTask()">+</button>
+    </div>
+
+    <!-- REMINDER ROW -->
+    <div class="reminder-row">
+      <span class="reminder-label">⏰ Reminder:</span>
+      <select class="reminder-type" id="reminderType" onchange="toggleReminderInput()">
+        <option value="none">No Reminder</option>
+        <option value="interval">Every X Hours</option>
+        <option value="time">At Specific Time</option>
+      </select>
+      <input type="number" class="interval-input" id="intervalInput"
+             placeholder="Hours" min="1" max="24" style="display:none"/>
+      <input type="time" class="time-input" id="timeInput" style="display:none"/>
+    </div>
+  </div>
+
+  <!-- FILTER TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="filterTasks('all', this)">All</button>
+    <button class="tab" onclick="filterTasks('pending', this)">Pending</button>
+    <button class="tab" onclick="filterTasks('done', this)">Done</button>
+  </div>
+
+  <!-- TASK LIST -->
+  <div class="task-list" id="taskList"></div>
+
+  <button class="clear-btn" onclick="clearDone()">🗑️ Clear Completed Tasks</button>
+
+</div>
+
+<!-- ALERT POPUP -->
+<div class="alert-popup" id="alertPopup">
+  <h3 id="alertTitle">⏰ Reminder!</h3>
+  <p id="alertMsg"></p>
+  <button class="alert-close" onclick="closeAlert()">✓ Got it!</button>
+</div>
+
+<script>
+  let tasks = [];
+  let currentFilter = 'all';
+  let reminderTimers = {};
+
+  // Show/hide reminder inputs based on type
+  function toggleReminderInput() {
+    const type = document.getElementById('reminderType').value;
+    document.getElementById('intervalInput').style.display = type === 'interval' ? 'block' : 'none';
+    document.getElementById('timeInput').style.display = type === 'time' ? 'block' : 'none';
+  }
+
+  // ADD TASK
+  function addTask() {
+    const input = document.getElementById('taskInput');
+    const priority = document.getElementById('prioritySelect').value;
+    const reminderType = document.getElementById('reminderType').value;
+    const text = input.value.trim();
+
+    if (!text) { input.focus(); return; }
+
+    let reminderData = null;
+
+    // Set reminder based on type
+    if (reminderType === 'interval') {
+      const hours = parseInt(document.getElementById('intervalInput').value);
+      if (!hours || hours < 1) {
+        alert('Please enter valid hours!');
+        return;
+      }
+      reminderData = { type: 'interval', hours: hours };
+    } else if (reminderType === 'time') {
+      const time = document.getElementById('timeInput').value;
+      if (!time) {
+        alert('Please select a time!');
+        return;
+      }
+      reminderData = { type: 'time', time: time };
+    }
+
+    // Create task
+    const task = {
+      id: Date.now(),
+      text: text,
+      priority: priority,
+      done: false,
+      reminder: reminderData
+    };
+
+    tasks.push(task);
+
+    // Set reminder timer if needed
+    if (reminderData) setReminder(task);
+
+    // Clear inputs
+    input.value = '';
+    document.getElementById('reminderType').value = 'none';
+    document.getElementById('intervalInput').style.display = 'none';
+    document.getElementById('timeInput').style.display = 'none';
+    input.focus();
+
+    renderTasks();
+    updateStats();
+  }
+
+  // SET REMINDER
+  function setReminder(task) {
+    if (!task.reminder) return;
+
+    if (task.reminder.type === 'interval') {
+      // Every X hours reminder
+      const ms = task.reminder.hours * 60 * 60 * 1000;
+      reminderTimers[task.id] = setInterval(() => {
+        if (!task.done) showAlert(task.text, `Time to: ${task.text}! ⏰`);
+      }, ms);
+
+    } else if (task.reminder.type === 'time') {
+      // Specific time reminder
+      const checkTime = setInterval(() => {
+        const now = new Date();
+        const current = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+        if (current === task.reminder.time && !task.done) {
+          showAlert(task.text, `Reminder: ${task.text}! 🔔`);
+          clearInterval(checkTime);
+        }
+      }, 10000); // Check every 10 seconds
+      reminderTimers[task.id] = checkTime;
+    }
+  }
+
+  // SHOW ALERT POPUP
+  function showAlert(title, msg) {
+    document.getElementById('alertTitle').textContent = '⏰ ' + title;
+    document.getElementById('alertMsg').textContent = msg;
+    document.getElementById('alertPopup').classList.add('show');
+  }
+
+  // CLOSE ALERT
+  function closeAlert() {
+    document.getElementById('alertPopup').classList.remove('show');
+  }
+
+  // TOGGLE DONE
+  function toggleTask(id) {
+    const task = tasks.find(t => t.id === id);
+    if (task) {
+      task.done = !task.done;
+      // Stop reminder if done
+      if (task.done && reminderTimers[id]) {
+        clearInterval(reminderTimers[id]);
+        delete reminderTimers[id];
+      }
+      renderTasks();
+      updateStats();
+    }
+  }
+
+  // DELETE TASK
+  function deleteTask(id) {
+    // Stop reminder timer
+    if (reminderTimers[id]) {
+      clearInterval(reminderTimers[id]);
+      delete reminderTimers[id];
+    }
+    tasks = tasks.filter(t => t.id !== id);
+    renderTasks();
+    updateStats();
+  }
+
+  // EDIT TASK
+  function editTask(id) {
+    const task = tasks.find(t => t.id === id);
+    const newText = prompt('Edit your task:', task.text);
+    if (newText && newText.trim()) {
+      task.text = newText.trim();
+      renderTasks();
+    }
+  }
+
+  // FILTER
+  function filterTasks(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderTasks();
+  }
+
+  // CLEAR DONE
+  function clearDone() {
+    tasks.filter(t => t.done).forEach(t => {
+      if (reminderTimers[t.id]) clearInterval(reminderTimers[t.id]);
+    });
+    tasks = tasks.filter(t => !t.done);
+    renderTasks();
+    updateStats();
+  }
+
+  // UPDATE STATS
+  function updateStats() {
+    document.getElementById('totalCount').textContent = tasks.length;
+    document.getElementById('doneCount').textContent = tasks.filter(t => t.done).length;
+    document.getElementById('pendingCount').textContent = tasks.filter(t => !t.done).length;
+  }
+
+  // RENDER TASKS
+  function renderTasks() {
+    const list = document.getElementById('taskList');
+    let filtered = tasks;
+    if (currentFilter === 'done') filtered = tasks.filter(t => t.done);
+    if (currentFilter === 'pending') filtered = tasks.filter(t => !t.done);
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty"><span>📋</span><p>No tasks here!</p></div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(task => {
+      let reminderText = '';
+      if (task.reminder) {
+        if (task.reminder.type === 'interval') {
+          reminderText = `<span class="reminder-info">⏰ Every ${task.reminder.hours}hr</span>`;
+        } else {
+          reminderText = `<span class="reminder-info">🔔 At ${task.reminder.time}</span>`;
+        }
+      }
+
+      return `
+        <div class="task-item ${task.done ? 'done' : ''}">
+          <div class="checkbox" onclick="toggleTask(${task.id})">${task.done ? '✓' : ''}</div>
+          <div class="task-info">
+            <div class="task-text">${task.text}</div>
+            <div class="task-meta">
+              <span class="badge ${task.priority}">${task.priority}</span>
+              ${reminderText}
+            </div>
+          </div>
+          <div class="task-actions">
+            <button class="edit-btn" onclick="editTask(${task.id})">✏️</button>
+            <button class="delete-btn" onclick="deleteTask(${task.id})">🗑️</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Enter key to add
+  document.getElementById('taskInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') addTask();
+  });
+
+  renderTasks();
+  updateStats();
+</script>
+
+</body>
+</html>
